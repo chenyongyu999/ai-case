@@ -22,6 +22,8 @@
 <script type="text/babel">
 const { useState, useMemo, useRef, useEffect } = React;
 
+const supabase = supabase.createClient('https://wzgodlsshvtsrceotudv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6Z29kbHNzaHZ0c3JjZW90dWR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMjc4MjgsImV4cCI6MjA4ODYwMzgyOH0.d58XEOaKZMOIux8FBZsYSz_cyd-6WX3OVToG9cp2X40');
+  
 // ─── API KEY 配置 ─────────────────────────────────────────────────────────────
 // 在下方填入你的 Anthropic API Key 以启用面试模拟功能
 // 获取地址：https://console.anthropic.com
