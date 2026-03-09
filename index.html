@@ -20,59 +20,44 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
+  const { useState, useMemo, useRef, useEffect } = React;
+
+  // 1. 初始化 Supabase
+  const supabase = window.supabase.createClient('https://wzgodlsshvtsrceotudv.supabase.co', '你的anon_key');
+
+  // 2. 只有一个 App 函数，不要重复！
+  function App() {
+    const [user, setUser] = useState(null);
+    
+    useEffect(() => {
+      // 检查登录状态
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+      });
+    }, []);
+
+    // 这里放你原来的 UI 渲染逻辑
+    return (
+      <div>
+        {!user ? <LoginComponent /> : <Dashboard />}
+      </div>
+    );
+  }
+
+  // 3. 渲染 App
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<App />);
+  
 const { useState, useMemo, useRef, useEffect } = React;
 
 const supabase = supabase.createClient('https://wzgodlsshvtsrceotudv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6Z29kbHNzaHZ0c3JjZW90dWR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMjc4MjgsImV4cCI6MjA4ODYwMzgyOH0.d58XEOaKZMOIux8FBZsYSz_cyd-6WX3OVToG9cp2X40');
-  
+
+    </script>
 // ─── API KEY 配置 ─────────────────────────────────────────────────────────────
 // 在下方填入你的 Anthropic API Key 以启用面试模拟功能
 // 获取地址：https://console.anthropic.com
 const API_KEY = "";
 
-
-  function App() {
-  const [session, setSession] = useState(null);
-  const [projects, setProjects] = useState([]);
-
-  // 页面加载时检查登录状态
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) fetchProjects(session.user.id);
-    });
-    
-    // 监听登录变化
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) fetchProjects(session.user.id);
-    });
-  }, []);
-
-  // 从数据库获取数据
-  const fetchProjects = async (userId) => {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('user_id', userId); // 关键：只取当前用户的数据
-    if (data) setProjects(data);
-  };
-
-  // 如果未登录，显示登录界面
-  if (!session) return <AuthUI />; 
-
-  return <MainApp projects={projects} />;
-}
-  
-  // 当用户点击“注册”按钮时，触发这个：
-async function signUp(email, password) {
-  const { data, error } = await supabase.auth.signUp({
-    email: email,
-    password: password,
-  });
-  if (error) alert("注册失败: " + error.message);
-  else alert("请查收邮箱进行确认！");
-}
-  
 // ─── TEMPLATES ────────────────────────────────────────────────────────────────
 const T = {
   product:   { id:"product",   name:"产品",    icon:"🧩", color:"#0d7377", light:"#e6f4f4",
