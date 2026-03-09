@@ -408,20 +408,25 @@ function App() {
   // Save / update a project
   const save = async (form) => {
     const { _dbid, ...cleanForm } = form;
-    if (_dbid) {
-      const { error } = await sb.from("projects")
-        .update({ data: cleanForm, updated_at: new Date().toISOString() })
-        .eq("id", _dbid);
-      if (!error) setProjects(p => p.map(x => x._dbid === _dbid ? { ...cleanForm, _dbid } : x));
-    } else {
-      const newForm = { ...cleanForm, id: Date.now() };
-      const { data, error } = await sb.from("projects")
-        .insert({ user_id: user.id, data: newForm })
-        .select().single();
-      if (error) { console.error('新建失败:', error.message); return; }
-      if (data) setProjects(p => [{ ...data.data, _dbid: data.id }, ...p]);
+    try {
+      if (_dbid) {
+        const { error } = await sb.from("projects")
+          .update({ data: cleanForm, updated_at: new Date().toISOString() })
+          .eq("id", _dbid);
+        if (error) throw error;
+        setProjects(p => p.map(x => x._dbid === _dbid ? { ...cleanForm, _dbid } : x));
+      } else {
+        const newForm = { ...cleanForm, id: Date.now() };
+        const { data, error } = await sb.from("projects")
+          .insert({ user_id: user.id, data: newForm })
+          .select().single();
+        if (error) throw error;
+        if (data) setProjects(p => [{ ...data.data, _dbid: data.id }, ...p]);
+      }
+      setEditing(null);
+    } catch(e) {
+      alert('保存失败：' + e.message);
     }
-    setEditing(null);
   };
 
   const del = async (id) => {
