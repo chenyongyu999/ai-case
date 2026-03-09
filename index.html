@@ -27,6 +27,16 @@ const { useState, useMemo, useRef, useEffect } = React;
 // 获取地址：https://console.anthropic.com
 const API_KEY = "";
 
+  // 当用户点击“注册”按钮时，触发这个：
+async function signUp(email, password) {
+  const { data, error } = await supabase.auth.signUp({
+    email: email,
+    password: password,
+  });
+  if (error) alert("注册失败: " + error.message);
+  else alert("请查收邮箱进行确认！");
+}
+  
 // ─── TEMPLATES ────────────────────────────────────────────────────────────────
 const T = {
   product:   { id:"product",   name:"产品",    icon:"🧩", color:"#0d7377", light:"#e6f4f4",
