@@ -29,6 +29,40 @@ const supabase = supabase.createClient('https://wzgodlsshvtsrceotudv.supabase.co
 // 获取地址：https://console.anthropic.com
 const API_KEY = "";
 
+
+  function App() {
+  const [session, setSession] = useState(null);
+  const [projects, setProjects] = useState([]);
+
+  // 页面加载时检查登录状态
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) fetchProjects(session.user.id);
+    });
+    
+    // 监听登录变化
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) fetchProjects(session.user.id);
+    });
+  }, []);
+
+  // 从数据库获取数据
+  const fetchProjects = async (userId) => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', userId); // 关键：只取当前用户的数据
+    if (data) setProjects(data);
+  };
+
+  // 如果未登录，显示登录界面
+  if (!session) return <AuthUI />; 
+
+  return <MainApp projects={projects} />;
+}
+  
   // 当用户点击“注册”按钮时，触发这个：
 async function signUp(email, password) {
   const { data, error } = await supabase.auth.signUp({
