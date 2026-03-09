@@ -7,11 +7,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body, #root { height: 100%; }
     body { font-family: 'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', sans-serif; }
     @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 999px; }
@@ -20,103 +23,145 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-  const { useState, useMemo, useRef, useEffect } = React;
-
-  // 1. 初始化 Supabase
-  const supabase = window.supabase.createClient('https://wzgodlsshvtsrceotudv.supabase.co', '你的anon_key');
-
-  // 2. 只有一个 App 函数，不要重复！
-  function App() {
-    const [user, setUser] = useState(null);
-    
-    useEffect(() => {
-      // 检查登录状态
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-      });
-    }, []);
-
-    // 这里放你原来的 UI 渲染逻辑
-    return (
-      <div>
-        {!user ? <LoginComponent /> : <Dashboard />}
-      </div>
-    );
-  }
-
-  // 3. 渲染 App
-  const root = ReactDOM.createRoot(document.getElementById('root'));
-  root.render(<App />);
-  
 const { useState, useMemo, useRef, useEffect } = React;
 
-const supabase = supabase.createClient('https://wzgodlsshvtsrceotudv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6Z29kbHNzaHZ0c3JjZW90dWR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMjc4MjgsImV4cCI6MjA4ODYwMzgyOH0.d58XEOaKZMOIux8FBZsYSz_cyd-6WX3OVToG9cp2X40');
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+const sb = supabase.createClient(
+  "https://wzgodlsshvtsrceotudv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6Z29kbHNzaHZ0c3JjZW90dWR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMjc4MjgsImV4cCI6MjA4ODYwMzgyOH0.d58XEOaKZMOIux8FBZsYSz_cyd-6WX3OVToG9cp2X40"
+);
 
-    </script>
-// ─── API KEY 配置 ─────────────────────────────────────────────────────────────
-// 在下方填入你的 Anthropic API Key 以启用面试模拟功能
-// 获取地址：https://console.anthropic.com
+// ─── ANTHROPIC API KEY（可选，用于面试模拟）────────────────────────────────────
 const API_KEY = "";
 
-// ─── TEMPLATES ────────────────────────────────────────────────────────────────
+// ─── INDUSTRY TEMPLATES ───────────────────────────────────────────────────────
 const T = {
-  product:   { id:"product",   name:"产品",    icon:"🧩", color:"#0d7377", light:"#e6f4f4",
-    jobs:["产品经理","高级产品经理","产品总监","产品运营","产品策划","增长产品经理"],
-    fields:["需求背景","用户规模","核心功能","上线版本"],
-    metrics:["DAU/MAU","功能使用率","NPS","交付周期"],
-    tags:["需求分析","原型设计","用户调研","数据分析","A/B测试","竞品分析","迭代优化","项目管理"],
-    ph:{title:"付费会员体系重构",desc:"重新梳理会员权益体系，提升付费转化与续费留存"} },
-  operation: { id:"operation", name:"运营",    icon:"📣", color:"#c2410c", light:"#fff3eb",
-    jobs:["运营专员","运营经理","高级运营","运营总监","内容运营","用户运营","活动运营","社群运营"],
-    fields:["活动背景","目标用户","渠道策略","执行周期"],
-    metrics:["GMV/营收","DAU增量","转化率","ROI"],
-    tags:["用户增长","内容运营","活动策划","社群运营","数据运营","拉新促活","品牌合作","用户留存"],
-    ph:{title:"双11大促整体运营",desc:"统筹全平台双11活动，覆盖拉新、促活、转化三大目标"} },
-  ads:       { id:"ads",       name:"广告销售", icon:"💰", color:"#6d28d9", light:"#f2eeff",
-    jobs:["广告销售","销售经理","大客户经理","商务拓展","媒介顾问","KA经理"],
-    fields:["客户行业","预算规模","投放渠道","合作周期"],
-    metrics:["签约金额","客户数","续约率","CTR/CVR"],
-    tags:["客户开发","方案提案","效果优化","账户管理","大客户","品牌广告","效果广告","行业洞察"],
-    ph:{title:"某快消品牌年框合作",desc:"签下TOP快消品牌年框，覆盖品牌+效果投放"} },
-  marketing: { id:"marketing", name:"市场",    icon:"🎯", color:"#b91c1c", light:"#fff0f0",
-    jobs:["市场专员","市场经理","品牌经理","整合营销","增长营销","CMO"],
-    fields:["营销目标","目标受众","核心卖点","传播渠道"],
-    metrics:["品牌曝光","线索量","CAC","市场份额"],
-    tags:["品牌建设","内容营销","PR传播","KOL合作","SEO/SEM","活动策划","市场调研","增长黑客"],
-    ph:{title:"新品上市整合营销",desc:"策划新品上市方案，全渠道协同提升声量"} },
-  data:      { id:"data",      name:"数据",    icon:"📊", color:"#1d4ed8", light:"#eff3ff",
-    jobs:["数据分析师","高级数据分析师","数据科学家","BI工程师","数据产品经理","算法工程师"],
-    fields:["分析背景","数据来源","分析方法","落地应用"],
-    metrics:["分析准确率","采纳率","模型提升","业务改善"],
-    tags:["数据建模","用户画像","漏斗分析","A/B测试","BI报表","预测模型","指标体系","数据治理"],
-    ph:{title:"用户流失预警模型",desc:"建立行为预警模型，识别高流失风险用户并干预"} },
-  tech:      { id:"tech",      name:"技术",    icon:"⚙️", color:"#065f46", light:"#ecfdf5",
-    jobs:["前端工程师","后端工程师","全栈工程师","技术负责人","架构师","技术总监"],
-    fields:["技术背景","架构方案","技术栈","难点突破"],
-    metrics:["性能提升","稳定性","研发效率","用户规模"],
-    tags:["前端","后端","AI/ML","架构设计","DevOps","移动端","数据库","安全"],
-    ph:{title:"推荐系统重构",desc:"重构千万级用户推荐系统，提升准确率与实时性"} },
+  product:   { id:"product",   name:"产品",    icon:"🧩", color:"#0d7377", light:"#e6f4f4", jobs:["产品经理","高级产品经理","产品总监","产品运营","产品策划","增长产品经理"], fields:["需求背景","用户规模","核心功能","上线版本"], metrics:["DAU/MAU","功能使用率","NPS","交付周期"], tags:["需求分析","原型设计","用户调研","数据分析","A/B测试","竞品分析","迭代优化","项目管理"], ph:{title:"付费会员体系重构",desc:"重新梳理会员权益体系，提升付费转化与续费留存"} },
+  operation: { id:"operation", name:"运营",    icon:"📣", color:"#c2410c", light:"#fff3eb", jobs:["运营专员","运营经理","高级运营","运营总监","内容运营","用户运营","活动运营","社群运营"], fields:["活动背景","目标用户","渠道策略","执行周期"], metrics:["GMV/营收","DAU增量","转化率","ROI"], tags:["用户增长","内容运营","活动策划","社群运营","数据运营","拉新促活","品牌合作","用户留存"], ph:{title:"双11大促整体运营",desc:"统筹全平台双11活动，覆盖拉新、促活、转化三大目标"} },
+  ads:       { id:"ads",       name:"广告销售", icon:"💰", color:"#6d28d9", light:"#f2eeff", jobs:["广告销售","销售经理","大客户经理","商务拓展","媒介顾问","KA经理"], fields:["客户行业","预算规模","投放渠道","合作周期"], metrics:["签约金额","客户数","续约率","CTR/CVR"], tags:["客户开发","方案提案","效果优化","账户管理","大客户","品牌广告","效果广告","行业洞察"], ph:{title:"某快消品牌年框合作",desc:"签下TOP快消品牌年框，覆盖品牌+效果投放"} },
+  marketing: { id:"marketing", name:"市场",    icon:"🎯", color:"#b91c1c", light:"#fff0f0", jobs:["市场专员","市场经理","品牌经理","整合营销","增长营销","CMO"], fields:["营销目标","目标受众","核心卖点","传播渠道"], metrics:["品牌曝光","线索量","CAC","市场份额"], tags:["品牌建设","内容营销","PR传播","KOL合作","SEO/SEM","活动策划","市场调研","增长黑客"], ph:{title:"新品上市整合营销",desc:"策划新品上市方案，全渠道协同提升声量"} },
+  data:      { id:"data",      name:"数据",    icon:"📊", color:"#1d4ed8", light:"#eff3ff", jobs:["数据分析师","高级数据分析师","数据科学家","BI工程师","数据产品经理","算法工程师"], fields:["分析背景","数据来源","分析方法","落地应用"], metrics:["分析准确率","采纳率","模型提升","业务改善"], tags:["数据建模","用户画像","漏斗分析","A/B测试","BI报表","预测模型","指标体系","数据治理"], ph:{title:"用户流失预警模型",desc:"建立行为预警模型，识别高流失风险用户并干预"} },
+  tech:      { id:"tech",      name:"技术",    icon:"⚙️", color:"#065f46", light:"#ecfdf5", jobs:["前端工程师","后端工程师","全栈工程师","技术负责人","架构师","技术总监"], fields:["技术背景","架构方案","技术栈","难点突破"], metrics:["性能提升","稳定性","研发效率","用户规模"], tags:["前端","后端","AI/ML","架构设计","DevOps","移动端","数据库","安全"], ph:{title:"推荐系统重构",desc:"重构千万级用户推荐系统，提升准确率与实时性"} },
 };
 
 const SAMPLE = [
   { id:1, industry:"operation", status:"done", title:"双11大促整体运营", description:"统筹全平台双11活动，协调产品/设计/技术/供应链等10+团队，覆盖预热期、爆发期、返场期共21天", jobTitle:"运营总监", company:"某电商平台", startDate:"2023-09", endDate:"2023-11", extraFields:{"活动背景":"年度最大节点，目标超越去年20%","目标用户":"25-40岁女性用户","渠道策略":"首页+推送+直播+短视频","执行周期":"21天"}, metrics:[{label:"GMV",before:"2.1亿",after:"3.4亿",delta:"+61.9%"},{label:"DAU峰值",before:"180万",after:"310万",delta:"+72.2%"},{label:"转化率",before:"3.2%",after:"5.8%",delta:"+2.6pp"}], tags:["活动策划","用户增长","数据运营"], progress:100, highlights:"首次实现跨平台直播联动，单场直播GMV破千万" },
   { id:2, industry:"product",   status:"ongoing", title:"会员体系2.0重构", description:"重设计付费会员权益架构，解决权益同质化问题，提升付费意愿与续费率", jobTitle:"高级产品经理", company:"某科技公司", startDate:"2024-03", endDate:"", extraFields:{"需求背景":"会员转化率持续下滑","用户规模":"注册2000万/付费120万","核心功能":"差异化权益+动态定价+等级体系","上线版本":"v2.0"}, metrics:[{label:"付费转化率",before:"6.1%",after:"—",delta:"目标9%"},{label:"月续费率",before:"71%",after:"—",delta:"目标85%"}], tags:["需求分析","用户调研","A/B测试"], progress:65, highlights:"调研500人+竞品分析完成，开发联调中" },
-  { id:3, industry:"ads",       status:"done", title:"某美妆品牌年框签约", description:"从0到1开发TOP美妆客户，完成品牌+效果一体化投放方案，签约年度框架", jobTitle:"大客户经理", company:"某广告媒体", startDate:"2023-06", endDate:"2023-12", extraFields:{"客户行业":"美妆/个护","预算规模":"年度800万","投放渠道":"信息流+搜索+开屏","合作周期":"12个月"}, metrics:[{label:"签约金额",before:"0",after:"800万",delta:"新客突破"},{label:"品牌曝光",before:"—",after:"4.2亿次",delta:""},{label:"ROI",before:"—",after:"1:6.8",delta:"超行业均值"}], tags:["客户开发","大客户","品牌广告"], progress:100, highlights:"Q4续约谈判中，客户预计增加30%预算" },
-  { id:4, industry:"data",      status:"ongoing", title:"用户分层运营指标体系", description:"构建全量用户行为标签体系，支撑精细化运营决策，打通产品-运营-数据协作链路", jobTitle:"数据分析师", company:"某科技公司", startDate:"2024-01", endDate:"", extraFields:{"分析背景":"运营缺乏精准画像，投放浪费","数据来源":"埋点+CRM+第三方","分析方法":"RFM模型+聚类算法","落地应用":"精准推送+个性化首页"}, metrics:[{label:"标签覆盖率",before:"23%",after:"81%",delta:"+58pp"},{label:"精准推送CTR",before:"1.2%",after:"—",delta:"目标3.5%"}], tags:["用户画像","数据建模","指标体系"], progress:45, highlights:"RFM模型已上线，精准推送模块开发中" },
-  { id:5, industry:"marketing", status:"done", title:"新品发布整合传播", description:"统筹新产品发布整合传播，协调PR/KOL/社交媒体多渠道协同扩大声量", jobTitle:"市场经理", company:"某品牌公司", startDate:"2023-11", endDate:"2024-01", extraFields:{"营销目标":"新品认知度快速破圈","目标受众":"18-30岁Z世代","核心卖点":"科技感+高颜值","传播渠道":"微博+小红书+抖音+媒体PR"}, metrics:[{label:"媒体曝光",before:"—",after:"12亿次",delta:""},{label:"社媒互动",before:"—",after:"380万次",delta:"+210%"},{label:"搜索指数",before:"基准100",after:"峰值1840",delta:"+18.4x"}], tags:["PR传播","KOL合作","品牌建设","内容营销"], progress:100, highlights:"登上微博热搜TOP5，小红书相关笔记破10万篇" },
+  { id:3, industry:"ads",       status:"done", title:"某美妆品牌年框签约", description:"从0到1开发TOP美妆客户，完成品牌+效果一体化投放方案，签约年度框架", jobTitle:"大客户经理", company:"某广告媒体", startDate:"2023-06", endDate:"2023-12", extraFields:{"客户行业":"美妆/个护","预算规模":"年度800万","投放渠道":"信息流+搜索+开屏","合作周期":"12个月"}, metrics:[{label:"签约金额",before:"0",after:"800万",delta:"新客突破"},{label:"ROI",before:"—",after:"1:6.8",delta:"超行业均值"}], tags:["客户开发","大客户","品牌广告"], progress:100, highlights:"Q4续约谈判中，客户预计增加30%预算" },
 ];
 
-const STORAGE_KEY = "portfolio-projects-v1";
-const loadProjects = () => { try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : SAMPLE; } catch { return SAMPLE; } };
-const saveProjects = (p) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {} };
+// ─── SPINNER ──────────────────────────────────────────────────────────────────
+function Spinner({ text = "加载中…" }) {
+  return (
+    <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#f2f3f9",flexDirection:"column",gap:14}}>
+      <div style={{width:36,height:36,border:"3px solid #e4e7f0",borderTopColor:"#0d7377",borderRadius:"50%",animation:"spin 1s linear infinite"}}/>
+      <div style={{fontSize:13,color:"#a8afc4"}}>{text}</div>
+    </div>
+  );
+}
+
+// ─── LOGIN PAGE ───────────────────────────────────────────────────────────────
+function LoginPage() {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState(null);
+
+  const run = async (fn) => {
+    setLoading(true); setMsg(null);
+    try { await fn(); }
+    catch(e) { setMsg({ type:"err", text: e.message }); }
+    setLoading(false);
+  };
+
+  const loginEmail    = () => run(async () => { const {error} = await sb.auth.signInWithPassword({email,password}); if(error) throw error; });
+  const registerEmail = () => run(async () => { const {error} = await sb.auth.signUp({email,password}); if(error) throw error; setMsg({type:"ok",text:"注册成功！请查收邮件确认链接，然后回来登录"}); });
+  const magicLink     = () => run(async () => { const {error} = await sb.auth.signInWithOtp({email}); if(error) throw error; setMsg({type:"ok",text:"✉️ 登录链接已发到邮箱，点击链接即可登录"}); });
+  const oAuth = (p)   => run(async () => { const {error} = await sb.auth.signInWithOAuth({provider:p,options:{redirectTo:window.location.origin}}); if(error) throw error; });
+
+  const inp = {width:"100%",padding:"11px 14px",borderRadius:10,border:"1.5px solid #e4e7f0",fontSize:14,fontFamily:"inherit",outline:"none",background:"#fafbff",color:"#1a1d2e",boxSizing:"border-box",transition:"border-color .15s"};
+
+  return (
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#f0f4ff,#e8f4f0)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{width:"100%",maxWidth:400,animation:"fadeIn .4s ease"}}>
+
+        {/* Logo */}
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{width:56,height:56,borderRadius:16,background:"linear-gradient(135deg,#0d7377,#14a085)",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:26,marginBottom:14,boxShadow:"0 10px 28px #0d737740"}}>📋</div>
+          <div style={{fontWeight:900,fontSize:24,color:"#1a1d2e",letterSpacing:"-0.5px"}}>成就库</div>
+          <div style={{fontSize:13,color:"#a8afc4",marginTop:5}}>记录你的职场成就，随时随地</div>
+        </div>
+
+        {/* Card */}
+        <div style={{background:"#fff",borderRadius:20,padding:30,boxShadow:"0 10px 48px rgba(0,0,0,.09)"}}>
+
+          {/* OAuth buttons */}
+          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:22}}>
+            <button onClick={()=>oAuth("github")} disabled={loading}
+              style={{width:"100%",padding:"12px",borderRadius:11,border:"none",background:"#1a1d2e",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:9,opacity:loading?.6:1,transition:"opacity .15s"}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              用 GitHub 登录
+            </button>
+            <button onClick={()=>oAuth("google")} disabled={loading}
+              style={{width:"100%",padding:"12px",borderRadius:11,border:"1.5px solid #e4e7f0",background:"#fff",color:"#1a1d2e",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:9,opacity:loading?.6:1,transition:"opacity .15s"}}>
+              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              用 Google 登录
+            </button>
+          </div>
+
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}>
+            <div style={{flex:1,height:1,background:"#f0f2f8"}}/>
+            <span style={{fontSize:11,color:"#c8cede",fontWeight:600,whiteSpace:"nowrap"}}>或用邮箱</span>
+            <div style={{flex:1,height:1,background:"#f0f2f8"}}/>
+          </div>
+
+          {/* Mode tabs */}
+          <div style={{display:"flex",background:"#f4f5fb",borderRadius:10,padding:3,marginBottom:18,gap:2}}>
+            {[["login","登录"],["register","注册"],["magic","免密登录"]].map(([m,l])=>(
+              <button key={m} onClick={()=>{setMode(m);setMsg(null);}} style={{flex:1,padding:"7px 4px",border:"none",background:mode===m?"#fff":"transparent",color:mode===m?"#1a1d2e":"#a8afc4",fontSize:12,fontWeight:mode===m?700:400,cursor:"pointer",fontFamily:"inherit",borderRadius:8,transition:"all .15s",boxShadow:mode===m?"0 1px 4px rgba(0,0,0,.08)":"none"}}>{l}</button>
+            ))}
+          </div>
+
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="邮箱地址" style={inp}
+              onKeyDown={e=>e.key==="Enter"&&(mode==="magic"?magicLink():mode==="register"?registerEmail():loginEmail())}/>
+            {(mode==="login"||mode==="register")&&(
+              <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+                placeholder={mode==="register"?"设置密码（至少6位）":"密码"} style={inp}
+                onKeyDown={e=>e.key==="Enter"&&(mode==="register"?registerEmail():loginEmail())}/>
+            )}
+
+            {msg&&(
+              <div style={{padding:"10px 13px",borderRadius:9,background:msg.type==="ok"?"#d1fae5":"#fee2e2",color:msg.type==="ok"?"#065f46":"#991b1b",fontSize:13,lineHeight:1.6}}>
+                {msg.text}
+              </div>
+            )}
+
+            <button
+              onClick={mode==="magic"?magicLink:mode==="register"?registerEmail:loginEmail}
+              disabled={loading||!email.trim()||(mode!=="magic"&&!password.trim())}
+              style={{padding:"13px",borderRadius:11,background:"#0d7377",color:"#fff",border:"none",fontSize:14,fontWeight:800,cursor:"pointer",fontFamily:"inherit",transition:"opacity .15s",opacity:(loading||!email.trim()||(mode!=="magic"&&!password.trim()))?.45:1,marginTop:2}}>
+              {loading?"处理中…":mode==="login"?"登录":mode==="register"?"注册":"发送登录链接 →"}
+            </button>
+          </div>
+        </div>
+
+        <div style={{textAlign:"center",marginTop:16,fontSize:12,color:"#c8cede"}}>
+          每个账号的数据独立保存，仅自己可见 🔒
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
 function TagPill({ label, color="#4f5882", bg="#f0f1f8", onRemove, onClick, active, small }) {
-  const sz = small ? {padding:"1px 7px",fontSize:10} : {padding:"3px 10px",fontSize:11};
+  const sz = small?{padding:"1px 7px",fontSize:10}:{padding:"3px 10px",fontSize:11};
   return (
     <span onClick={onClick} style={{display:"inline-flex",alignItems:"center",gap:3,borderRadius:999,fontWeight:600,background:active?color:bg,color:active?"#fff":color,cursor:(onClick||onRemove)?"pointer":"default",border:`1px solid ${active?color:"transparent"}`,transition:"all .12s",userSelect:"none",...sz}}>
       {label}
-      {onRemove && <span onClick={e=>{e.stopPropagation();onRemove();}} style={{fontSize:12,lineHeight:1,opacity:.5,marginLeft:1}}>×</span>}
+      {onRemove&&<span onClick={e=>{e.stopPropagation();onRemove();}} style={{fontSize:12,lineHeight:1,opacity:.5,marginLeft:1}}>×</span>}
     </span>
   );
 }
@@ -127,195 +172,43 @@ function Arc({ pct, color, size=34 }) {
     <svg width={size} height={size} style={{flexShrink:0}}>
       <circle cx={cx} cy={cy} r={r} fill="none" stroke="#eef0f6" strokeWidth="2.5"/>
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"
-        strokeDasharray={circ} strokeDashoffset={circ*(1-pct/100)}
-        transform={`rotate(-90 ${cx} ${cy})`} style={{transition:"stroke-dashoffset .4s"}}/>
+        strokeDasharray={circ} strokeDashoffset={circ*(1-pct/100)} transform={`rotate(-90 ${cx} ${cy})`} style={{transition:"stroke-dashoffset .4s"}}/>
       <text x={cx} y={cy+3.5} textAnchor="middle" fontSize="8" fontWeight="700" fill={color}>{pct}%</text>
     </svg>
   );
 }
 
-// ─── AI INTERVIEW ─────────────────────────────────────────────────────────────
-function InterviewModal({ project, onClose }) {
-  const tmpl = T[project.industry];
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [apiKey, setApiKey] = useState(API_KEY || localStorage.getItem("portfolio-apikey") || "");
-  const [showKeyInput, setShowKeyInput] = useState(!API_KEY && !localStorage.getItem("portfolio-apikey"));
-  const bottomRef = useRef(null);
-
-  useEffect(() => { bottomRef.current?.scrollIntoView({behavior:"smooth"}); }, [messages, loading]);
-
-  const ctx = `项目名称：${project.title}\n岗位：${project.jobTitle}\n公司：${project.company}\n时间：${project.startDate}${project.endDate?" 至 "+project.endDate:" 至今"}\n描述：${project.description}\n量化成果：${project.metrics.map(m=>`${m.label}${m.before?" 从"+m.before:""}${m.after&&m.after!=="—"?" 到"+m.after:""}${m.delta?" ("+m.delta+")":""}`).join("；")}\n亮点：${project.highlights||"无"}\n${Object.entries(project.extraFields||{}).filter(([,v])=>v).map(([k,v])=>k+"："+v).join("\n")}`;
-
-  const sys = `你是一位经验丰富的互联网行业面试官，针对以下项目进行深度行为面试：\n\n${ctx}\n\n规则：1.逐步深入考察 2.层层递进：背景→挑战→决策→复盘→提炼 3.给简短点评后继续追问 4.语气专业友好 5.每次只问一个问题 6.适当追问"能具体说说吗"\n\n请先简短自我介绍，然后提第一个问题。`;
-
-  const callAI = async (msgs, key) => {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:sys,messages:msgs})
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    return data.content?.map(c=>c.text||"").join("") || "获取回复失败";
-  };
-
-  const saveKey = () => {
-    localStorage.setItem("portfolio-apikey", apiKey);
-    setShowKeyInput(false);
-  };
-
-  const start = async () => {
-    setStarted(true); setLoading(true);
-    try {
-      const text = await callAI([{role:"user",content:"开始面试"}], apiKey);
-      setMessages([{role:"ai",text}]);
-    } catch(e) { setMessages([{role:"ai",text:"❌ "+e.message}]); }
-    setLoading(false);
-  };
-
-  const send = async () => {
-    if (!input.trim()||loading) return;
-    const u = input.trim(); setInput("");
-    const next = [...messages,{role:"user",text:u}];
-    setMessages(next); setLoading(true);
-    try {
-      const text = await callAI(next.map(m=>({role:m.role==="user"?"user":"assistant",content:m.text})), apiKey);
-      setMessages(p=>[...p,{role:"ai",text}]);
-    } catch(e) { setMessages(p=>[...p,{role:"ai",text:"❌ "+e.message}]); }
-    setLoading(false);
-  };
-
-  return (
-    <div style={{position:"fixed",inset:0,zIndex:700,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(10,14,30,.6)",backdropFilter:"blur(5px)",padding:20}}>
-      <div style={{width:"100%",maxWidth:580,height:"88vh",background:"#fff",borderRadius:20,display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 28px 70px rgba(0,0,0,.22)"}}>
-        <div style={{padding:"15px 20px 12px",borderBottom:"1px solid #f0f2f8",display:"flex",alignItems:"center",gap:11,flexShrink:0,background:`linear-gradient(135deg,${tmpl.color}08,transparent)`}}>
-          <div style={{width:36,height:36,borderRadius:11,background:tmpl.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,flexShrink:0}}>🎤</div>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:800,fontSize:14,color:"#1a1d2e",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{project.title}</div>
-            <div style={{fontSize:11,color:"#a8afc4",marginTop:1}}>{project.jobTitle} · AI 面试模拟</div>
-          </div>
-          <button onClick={onClose} style={{background:"#f3f4fa",border:"none",borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280"}}>✕</button>
-        </div>
-
-        {showKeyInput && (
-          <div style={{margin:"12px 16px",padding:"14px",background:"#fffbeb",borderRadius:10,border:"1px solid #fde68a",fontSize:12,color:"#92400e"}}>
-            <div style={{fontWeight:700,marginBottom:8}}>🔑 配置 API Key 以启用面试模拟</div>
-            <div style={{marginBottom:8}}>获取地址：<a href="https://console.anthropic.com" target="_blank" style={{color:"#0d7377"}}>console.anthropic.com</a></div>
-            <div style={{display:"flex",gap:8}}>
-              <input value={apiKey} onChange={e=>setApiKey(e.target.value)} placeholder="sk-ant-..." style={{flex:1,padding:"7px 10px",borderRadius:7,border:"1px solid #fcd34d",fontSize:12,fontFamily:"inherit",outline:"none"}}/>
-              <button onClick={saveKey} disabled={!apiKey.trim()} style={{padding:"7px 14px",background:apiKey.trim()?"#0d7377":"#e5e7eb",color:apiKey.trim()?"#fff":"#9ca3af",border:"none",borderRadius:7,fontSize:12,fontWeight:700,cursor:apiKey.trim()?"pointer":"not-allowed",fontFamily:"inherit"}}>保存</button>
-            </div>
-          </div>
-        )}
-
-        <div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:14,background:"#fafbff"}}>
-          {!started && (
-            <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16,textAlign:"center",padding:"0 20px"}}>
-              <div style={{fontSize:44}}>🎯</div>
-              <div>
-                <div style={{fontWeight:800,fontSize:17,color:"#1a1d2e",marginBottom:8}}>面试模拟准备好了</div>
-                <div style={{fontSize:13,color:"#8891a8",lineHeight:1.8,maxWidth:320}}>AI 面试官将基于「{project.title}」进行深度面试，帮你梳理表达思路</div>
-              </div>
-              <div style={{background:tmpl.light,borderRadius:12,padding:"10px 16px",fontSize:12,color:tmpl.color,fontWeight:600,border:`1px solid ${tmpl.color}30`,maxWidth:320,lineHeight:1.7,textAlign:"left"}}>
-                💡 像真实面试一样作答，细节越丰富，追问越有价值
-              </div>
-              <button onClick={start} disabled={!apiKey.trim()} style={{padding:"11px 28px",background:apiKey.trim()?tmpl.color:"#e5e7eb",color:apiKey.trim()?"#fff":"#9ca3af",border:"none",borderRadius:12,fontWeight:800,fontSize:14,cursor:apiKey.trim()?"pointer":"not-allowed",fontFamily:"inherit"}}>
-                {apiKey.trim() ? "开始面试 →" : "请先填写 API Key"}
-              </button>
-              {!apiKey.trim() && <button onClick={()=>setShowKeyInput(true)} style={{fontSize:12,color:"#0d7377",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>填写 API Key</button>}
-            </div>
-          )}
-          {messages.map((m,i)=>(
-            <div key={i} style={{display:"flex",gap:9,flexDirection:m.role==="user"?"row-reverse":"row",alignItems:"flex-end"}}>
-              <div style={{width:28,height:28,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,background:m.role==="user"?"#e8eaf4":"#1a1d2e"}}>
-                {m.role==="user"?"👤":"🤖"}
-              </div>
-              <div style={{maxWidth:"80%",padding:"10px 14px",borderRadius:m.role==="user"?"14px 4px 14px 14px":"4px 14px 14px 14px",background:m.role==="user"?"#1a1d2e":tmpl.light,color:m.role==="user"?"#fff":"#1a1d2e",fontSize:13,lineHeight:1.8,whiteSpace:"pre-wrap",border:m.role==="user"?"none":`1px solid ${tmpl.color}18`}}>
-                {m.text}
-              </div>
-            </div>
-          ))}
-          {loading && (
-            <div style={{display:"flex",gap:9,alignItems:"flex-end"}}>
-              <div style={{width:28,height:28,borderRadius:"50%",background:"#1a1d2e",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🤖</div>
-              <div style={{padding:"12px 16px",borderRadius:"4px 14px 14px 14px",background:tmpl.light,border:`1px solid ${tmpl.color}18`,display:"flex",gap:5,alignItems:"center"}}>
-                {[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:tmpl.color,animation:"bounce .9s infinite",animationDelay:`${i*.18}s`}}/>)}
-              </div>
-            </div>
-          )}
-          <div ref={bottomRef}/>
-        </div>
-
-        {started && (
-          <div style={{padding:"11px 16px",borderTop:"1px solid #f0f2f8",display:"flex",gap:9,flexShrink:0,background:"#fff"}}>
-            <textarea value={input} onChange={e=>setInput(e.target.value)}
-              onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}}
-              placeholder="输入回答，Enter 发送 · Shift+Enter 换行" disabled={loading}
-              style={{flex:1,padding:"9px 12px",borderRadius:10,border:"1.5px solid #e4e7f0",fontSize:13,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.6,background:"#fafbff",color:"#1a1d2e",height:52,boxSizing:"border-box"}}/>
-            <button onClick={send} disabled={!input.trim()||loading}
-              style={{padding:"0 16px",background:input.trim()&&!loading?tmpl.color:"#e8eaf4",color:input.trim()&&!loading?"#fff":"#a8afc4",border:"none",borderRadius:10,fontWeight:700,fontSize:13,cursor:input.trim()&&!loading?"pointer":"not-allowed",fontFamily:"inherit",flexShrink:0}}>
-              发送
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── SKILL LEVEL HELPER ───────────────────────────────────────────────────────
-// 根据全库所有项目的标签出现频次，计算某标签的熟练度（1-5星）
-function calcSkillLevel(tag, allProjects) {
-  const count = allProjects.filter(p => p.tags.includes(tag)).length;
-  if (count >= 5) return 5;
-  if (count >= 4) return 4;
-  if (count >= 3) return 3;
-  if (count >= 2) return 2;
-  return 1;
-}
-
-// 能力板块：展示本项目用到的技能及全库熟练度
+// ─── SKILL PANEL ──────────────────────────────────────────────────────────────
 function SkillPanel({ tags, allProjects, color, light }) {
-  if (!tags || tags.length === 0) return null;
-
-  // 全库所有标签的出现次数
-  const globalCounts = {};
-  allProjects.forEach(p => p.tags.forEach(t => { globalCounts[t] = (globalCounts[t]||0) + 1; }));
-  const maxCount = Math.max(1, ...Object.values(globalCounts));
-
-  const skills = tags.map(tag => {
-    const count = globalCounts[tag] || 1;
-    const stars = count >= 5 ? 5 : count >= 4 ? 4 : count >= 3 ? 3 : count >= 2 ? 2 : 1;
-    const pct = Math.round((count / maxCount) * 100);
-    return { tag, count, stars, pct };
-  }).sort((a,b) => b.count - a.count);
-
-  const starLabels = ["入门","基础","熟练","精通","专家"];
-
+  if (!tags||tags.length===0) return null;
+  const gc={};
+  allProjects.forEach(p=>p.tags.forEach(t=>{gc[t]=(gc[t]||0)+1;}));
+  const maxC=Math.max(1,...Object.values(gc));
+  const skills=tags.map(tag=>{
+    const count=gc[tag]||1;
+    const stars=count>=5?5:count>=4?4:count>=3?3:count>=2?2:1;
+    return{tag,count,stars,pct:Math.round((count/maxC)*100)};
+  }).sort((a,b)=>b.count-a.count);
+  const labels=["入门","基础","熟练","精通","专家"];
   return (
     <div style={{borderTop:"1px solid #f0f2f8",marginTop:14,paddingTop:14}}>
       <div style={{fontSize:10,fontWeight:700,color:"#a8afc4",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:10}}>
         ⚡ 能力图谱 <span style={{fontSize:9,fontWeight:400,color:"#c8cede",marginLeft:4}}>基于全库项目经历自动生成</span>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px 20px"}}>
-        {skills.map(({tag, count, stars, pct}) => (
+        {skills.map(({tag,count,stars,pct})=>(
           <div key={tag}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
                 <span style={{fontSize:12,color:"#1a1d2e",fontWeight:600}}>{tag}</span>
-                <span style={{fontSize:9,color:color,background:light,padding:"1px 5px",borderRadius:999,fontWeight:700,border:`1px solid ${color}22`}}>{starLabels[stars-1]}</span>
+                <span style={{fontSize:9,color,background:light,padding:"1px 5px",borderRadius:999,fontWeight:700,border:`1px solid ${color}22`}}>{labels[stars-1]}</span>
               </div>
-              <div style={{display:"flex",gap:1.5}}>
-                {[1,2,3,4,5].map(i=>(
-                  <div key={i} style={{width:8,height:8,borderRadius:"50%",background:i<=stars?color:"#e8eaf4",transition:"background .2s"}}/>
-                ))}
+              <div style={{display:"flex",gap:2}}>
+                {[1,2,3,4,5].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:i<=stars?color:"#e8eaf4"}}/>)}
               </div>
             </div>
             <div style={{height:3,background:"#eaecf5",borderRadius:999,overflow:"hidden"}}>
-              <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:999,transition:"width .6s ease"}}/>
+              <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${color}77,${color})`,borderRadius:999}}/>
             </div>
             <div style={{fontSize:9,color:"#c8cede",marginTop:2}}>出现于 {count} 个项目</div>
           </div>
@@ -325,10 +218,46 @@ function SkillPanel({ tags, allProjects, color, light }) {
   );
 }
 
+// ─── AI INTERVIEW ─────────────────────────────────────────────────────────────
+function InterviewModal({ project, onClose }) {
+  const tmpl=T[project.industry];
+  const [messages,setMessages]=useState([]);
+  const [input,setInput]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [started,setStarted]=useState(false);
+  const [apiKey,setApiKey]=useState(API_KEY||localStorage.getItem("portfolio-apikey")||"");
+  const [showKey,setShowKey]=useState(!API_KEY&&!localStorage.getItem("portfolio-apikey"));
+  const bottomRef=useRef(null);
+  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[messages,loading]);
+  const ctx=`项目：${project.title}\n岗位：${project.jobTitle}\n公司：${project.company}\n时间：${project.startDate}${project.endDate?" 至 "+project.endDate:" 至今"}\n描述：${project.description}\n成果：${project.metrics.map(m=>`${m.label}${m.before?" 从"+m.before:""}${m.after&&m.after!=="—"?" 到"+m.after:""}${m.delta?" ("+m.delta+")":""}`).join("；")}\n亮点：${project.highlights||"无"}\n${Object.entries(project.extraFields||{}).filter(([,v])=>v).map(([k,v])=>k+"："+v).join("\n")}`;
+  const sys=`你是互联网行业面试官，针对以下项目进行深度行为面试：\n\n${ctx}\n\n规则：逐步深入，层层递进（背景→挑战→决策→复盘→提炼），给点评后继续追问，语气专业友好，每次只问一个问题。先简短自我介绍，然后提第一个问题。`;
+  const callAI=async(msgs,key)=>{const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:sys,messages:msgs})});const data=await res.json();if(data.error)throw new Error(data.error.message);return data.content?.map(c=>c.text||"").join("")||"获取回复失败";};
+  const start=async()=>{setStarted(true);setLoading(true);try{const t=await callAI([{role:"user",content:"开始面试"}],apiKey);setMessages([{role:"ai",text:t}]);}catch(e){setMessages([{role:"ai",text:"❌ "+e.message}]);}setLoading(false);};
+  const send=async()=>{if(!input.trim()||loading)return;const u=input.trim();setInput("");const next=[...messages,{role:"user",text:u}];setMessages(next);setLoading(true);try{const t=await callAI(next.map(m=>({role:m.role==="user"?"user":"assistant",content:m.text})),apiKey);setMessages(p=>[...p,{role:"ai",text:t}]);}catch(e){setMessages(p=>[...p,{role:"ai",text:"❌ "+e.message}]);}setLoading(false);};
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:700,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(10,14,30,.6)",backdropFilter:"blur(5px)",padding:20}}>
+      <div style={{width:"100%",maxWidth:580,height:"88vh",background:"#fff",borderRadius:20,display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 28px 70px rgba(0,0,0,.22)"}}>
+        <div style={{padding:"15px 20px 12px",borderBottom:"1px solid #f0f2f8",display:"flex",alignItems:"center",gap:11,flexShrink:0,background:`linear-gradient(135deg,${tmpl.color}08,transparent)`}}>
+          <div style={{width:36,height:36,borderRadius:11,background:tmpl.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🎤</div>
+          <div style={{flex:1,minWidth:0}}><div style={{fontWeight:800,fontSize:14,color:"#1a1d2e",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{project.title}</div><div style={{fontSize:11,color:"#a8afc4",marginTop:1}}>{project.jobTitle} · AI 面试模拟</div></div>
+          <button onClick={onClose} style={{background:"#f3f4fa",border:"none",borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",color:"#6b7280"}}>✕</button>
+        </div>
+        {showKey&&(<div style={{margin:"12px 16px",padding:"14px",background:"#fffbeb",borderRadius:10,border:"1px solid #fde68a",fontSize:12,color:"#92400e"}}><div style={{fontWeight:700,marginBottom:8}}>🔑 填写 Anthropic API Key 启用面试模拟</div><div style={{display:"flex",gap:8}}><input value={apiKey} onChange={e=>setApiKey(e.target.value)} placeholder="sk-ant-..." style={{flex:1,padding:"7px 10px",borderRadius:7,border:"1px solid #fcd34d",fontSize:12,fontFamily:"inherit",outline:"none"}}/><button onClick={()=>{localStorage.setItem("portfolio-apikey",apiKey);setShowKey(false);}} disabled={!apiKey.trim()} style={{padding:"7px 14px",background:apiKey.trim()?"#0d7377":"#e5e7eb",color:apiKey.trim()?"#fff":"#9ca3af",border:"none",borderRadius:7,fontSize:12,fontWeight:700,cursor:apiKey.trim()?"pointer":"not-allowed",fontFamily:"inherit"}}>保存</button></div></div>)}
+        <div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:14,background:"#fafbff"}}>
+          {!started&&(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16,textAlign:"center",padding:"0 20px"}}><div style={{fontSize:44}}>🎯</div><div style={{fontWeight:800,fontSize:17,color:"#1a1d2e",marginBottom:4}}>面试模拟准备好了</div><div style={{fontSize:13,color:"#8891a8",lineHeight:1.8}}>AI 面试官将基于「{project.title}」进行深度面试</div><button onClick={start} disabled={!apiKey.trim()} style={{padding:"11px 28px",background:apiKey.trim()?tmpl.color:"#e5e7eb",color:apiKey.trim()?"#fff":"#9ca3af",border:"none",borderRadius:12,fontWeight:800,fontSize:14,cursor:apiKey.trim()?"pointer":"not-allowed",fontFamily:"inherit"}}>{apiKey.trim()?"开始面试 →":"请先填写 API Key"}</button>{!apiKey.trim()&&<button onClick={()=>setShowKey(true)} style={{fontSize:12,color:"#0d7377",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>填写 API Key</button>}</div>)}
+          {messages.map((m,i)=>(<div key={i} style={{display:"flex",gap:9,flexDirection:m.role==="user"?"row-reverse":"row",alignItems:"flex-end"}}><div style={{width:28,height:28,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,background:m.role==="user"?"#e8eaf4":"#1a1d2e"}}>{m.role==="user"?"👤":"🤖"}</div><div style={{maxWidth:"80%",padding:"10px 14px",borderRadius:m.role==="user"?"14px 4px 14px 14px":"4px 14px 14px 14px",background:m.role==="user"?"#1a1d2e":tmpl.light,color:m.role==="user"?"#fff":"#1a1d2e",fontSize:13,lineHeight:1.8,whiteSpace:"pre-wrap"}}>{m.text}</div></div>))}
+          {loading&&(<div style={{display:"flex",gap:9,alignItems:"flex-end"}}><div style={{width:28,height:28,borderRadius:"50%",background:"#1a1d2e",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🤖</div><div style={{padding:"12px 16px",borderRadius:"4px 14px 14px 14px",background:tmpl.light,display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:tmpl.color,animation:"bounce .9s infinite",animationDelay:`${i*.18}s`}}/>)}</div></div>)}
+          <div ref={bottomRef}/>
+        </div>
+        {started&&(<div style={{padding:"11px 16px",borderTop:"1px solid #f0f2f8",display:"flex",gap:9,flexShrink:0,background:"#fff"}}><textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="输入回答，Enter 发送 · Shift+Enter 换行" disabled={loading} style={{flex:1,padding:"9px 12px",borderRadius:10,border:"1.5px solid #e4e7f0",fontSize:13,fontFamily:"inherit",resize:"none",outline:"none",lineHeight:1.6,background:"#fafbff",color:"#1a1d2e",height:52,boxSizing:"border-box"}}/><button onClick={send} disabled={!input.trim()||loading} style={{padding:"0 16px",background:input.trim()&&!loading?tmpl.color:"#e8eaf4",color:input.trim()&&!loading?"#fff":"#a8afc4",border:"none",borderRadius:10,fontWeight:700,fontSize:13,cursor:input.trim()&&!loading?"pointer":"not-allowed",fontFamily:"inherit",flexShrink:0}}>发送</button></div>)}
+      </div>
+    </div>
+  );
+}
+
 // ─── PROJECT ROW ──────────────────────────────────────────────────────────────
 function ProjectRow({ p, expanded, onToggle, onEdit, onDelete, onToggleStatus, onInterview, allProjects }) {
-  const tmpl = T[p.industry];
-  const done = p.status === "done";
+  const tmpl=T[p.industry]; const done=p.status==="done";
   return (
     <div style={{background:"#fff",borderRadius:11,border:`1px solid ${expanded?"#c7cde8":"#e8eaf4"}`,overflow:"hidden",boxShadow:expanded?"0 4px 18px rgba(0,0,0,.07)":"none",transition:"border-color .15s,box-shadow .15s"}}>
       <div style={{display:"grid",gridTemplateColumns:"3px 26px 1fr 110px 100px 34px auto",alignItems:"center",gap:0,paddingRight:10,minHeight:48}}>
@@ -339,10 +268,7 @@ function ProjectRow({ p, expanded, onToggle, onEdit, onDelete, onToggleStatus, o
           <div style={{fontSize:11,color:"#a8afc4",marginTop:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.jobTitle} · {p.company} · {p.startDate}{p.endDate?` — ${p.endDate}`:" 至今"}</div>
         </div>
         <div onClick={onToggle} style={{textAlign:"right",paddingRight:14,cursor:"pointer"}}>
-          {p.metrics[0]?<>
-            <div style={{fontSize:13,fontWeight:800,color:done?"#059669":"#c2410c",lineHeight:1.2}}>{p.metrics[0].after&&p.metrics[0].after!=="—"?p.metrics[0].after:p.metrics[0].delta}</div>
-            <div style={{fontSize:10,color:"#a8afc4"}}>{p.metrics[0].label}</div>
-          </>:<div/>}
+          {p.metrics[0]?<><div style={{fontSize:13,fontWeight:800,color:done?"#059669":"#c2410c",lineHeight:1.2}}>{p.metrics[0].after&&p.metrics[0].after!=="—"?p.metrics[0].after:p.metrics[0].delta}</div><div style={{fontSize:10,color:"#a8afc4"}}>{p.metrics[0].label}</div></>:<div/>}
         </div>
         <div onClick={onToggle} style={{display:"flex",gap:4,overflow:"hidden",cursor:"pointer"}}>
           {p.tags.slice(0,1).map(t=><TagPill key={t} label={t} color={tmpl.color} bg={tmpl.light} small/>)}
@@ -353,59 +279,22 @@ function ProjectRow({ p, expanded, onToggle, onEdit, onDelete, onToggleStatus, o
         </div>
         <div style={{display:"flex",alignItems:"center",gap:3,paddingLeft:6}}>
           {[{icon:"✎",title:"编辑",fn:e=>{e.stopPropagation();onEdit(p);},hBg:"#f4f5fb",hBd:"#c7cde8",hCo:"#4a4f6a"},{icon:"🎤",title:"面试",fn:e=>{e.stopPropagation();onInterview(p);},hBg:tmpl.light,hBd:`${tmpl.color}88`,hCo:tmpl.color}].map(({icon,title,fn,hBg,hBd,hCo})=>(
-            <button key={title} onClick={fn} title={title}
-              style={{width:28,height:28,borderRadius:7,border:"1px solid #e4e7f0",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"#a8afc4",transition:"all .12s"}}
-              onMouseEnter={e=>{e.currentTarget.style.background=hBg;e.currentTarget.style.borderColor=hBd;e.currentTarget.style.color=hCo;}}
-              onMouseLeave={e=>{e.currentTarget.style.background="#fff";e.currentTarget.style.borderColor="#e4e7f0";e.currentTarget.style.color="#a8afc4";}}>
-              {icon}
-            </button>
+            <button key={title} onClick={fn} title={title} style={{width:28,height:28,borderRadius:7,border:"1px solid #e4e7f0",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"#a8afc4",transition:"all .12s"}} onMouseEnter={e=>{e.currentTarget.style.background=hBg;e.currentTarget.style.borderColor=hBd;e.currentTarget.style.color=hCo;}} onMouseLeave={e=>{e.currentTarget.style.background="#fff";e.currentTarget.style.borderColor="#e4e7f0";e.currentTarget.style.color="#a8afc4";}}>{icon}</button>
           ))}
           <div onClick={onToggle} style={{width:20,fontSize:11,color:"#c8cede",transform:expanded?"rotate(180deg)":"rotate(0)",transition:"transform .2s",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",userSelect:"none"}}>▼</div>
         </div>
       </div>
-
-      {expanded && (
+      {expanded&&(
         <div style={{borderTop:"1px solid #f0f2f8",padding:"16px 18px"}}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
             <div>
               <p style={{margin:"0 0 12px",fontSize:13,color:"#4a4f6a",lineHeight:1.75}}>{p.description}</p>
               {p.highlights&&<div style={{fontSize:12,color:"#4a4f6a",background:"#f7f8ff",borderRadius:8,padding:"8px 11px",marginBottom:12,borderLeft:`3px solid ${tmpl.color}`}}>💡 {p.highlights}</div>}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px 14px"}}>
-                {Object.entries(p.extraFields||{}).filter(([,v])=>v).map(([k,v])=>(
-                  <div key={k}>
-                    <div style={{fontSize:10,fontWeight:700,color:"#a8afc4",textTransform:"uppercase",letterSpacing:"0.05em"}}>{k}</div>
-                    <div style={{fontSize:12,color:"#1a1d2e",marginTop:1}}>{v}</div>
-                  </div>
-                ))}
-              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px 14px"}}>{Object.entries(p.extraFields||{}).filter(([,v])=>v).map(([k,v])=>(<div key={k}><div style={{fontSize:10,fontWeight:700,color:"#a8afc4",textTransform:"uppercase",letterSpacing:"0.05em"}}>{k}</div><div style={{fontSize:12,color:"#1a1d2e",marginTop:1}}>{v}</div></div>))}</div>
             </div>
             <div>
-              {p.metrics.length>0&&(
-                <div style={{borderRadius:9,overflow:"hidden",border:"1px solid #e8eaf4",marginBottom:12}}>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 68px 68px 76px",padding:"5px 10px",background:"#f4f5fb"}}>
-                    {["指标","优化前","优化后","变化"].map(h=><span key={h} style={{fontSize:10,fontWeight:700,color:"#a8afc4",textTransform:"uppercase",letterSpacing:"0.04em"}}>{h}</span>)}
-                  </div>
-                  {p.metrics.map((m,i)=>(
-                    <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 68px 68px 76px",padding:"7px 10px",borderTop:"1px solid #f0f2f8"}}>
-                      <span style={{fontSize:12,color:"#1a1d2e",fontWeight:600}}>{m.label}</span>
-                      <span style={{fontSize:12,color:"#a8afc4"}}>{m.before}</span>
-                      <span style={{fontSize:12,color:"#1a1d2e"}}>{m.after}</span>
-                      <span style={{fontSize:12,fontWeight:700,color:done?"#059669":"#c2410c"}}>{m.delta}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {!done&&(
-                <div style={{marginBottom:12}}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                    <span style={{fontSize:11,color:"#a8afc4",fontWeight:600}}>项目进度</span>
-                    <span style={{fontSize:11,color:tmpl.color,fontWeight:700}}>{p.progress}%</span>
-                  </div>
-                  <div style={{height:5,background:"#eaecf5",borderRadius:999}}>
-                    <div style={{height:"100%",width:`${p.progress}%`,background:tmpl.color,borderRadius:999,transition:"width .4s"}}/>
-                  </div>
-                </div>
-              )}
+              {p.metrics.length>0&&(<div style={{borderRadius:9,overflow:"hidden",border:"1px solid #e8eaf4",marginBottom:12}}><div style={{display:"grid",gridTemplateColumns:"1fr 68px 68px 76px",padding:"5px 10px",background:"#f4f5fb"}}>{["指标","优化前","优化后","变化"].map(h=><span key={h} style={{fontSize:10,fontWeight:700,color:"#a8afc4",textTransform:"uppercase",letterSpacing:"0.04em"}}>{h}</span>)}</div>{p.metrics.map((m,i)=>(<div key={i} style={{display:"grid",gridTemplateColumns:"1fr 68px 68px 76px",padding:"7px 10px",borderTop:"1px solid #f0f2f8"}}><span style={{fontSize:12,color:"#1a1d2e",fontWeight:600}}>{m.label}</span><span style={{fontSize:12,color:"#a8afc4"}}>{m.before}</span><span style={{fontSize:12,color:"#1a1d2e"}}>{m.after}</span><span style={{fontSize:12,fontWeight:700,color:done?"#059669":"#c2410c"}}>{m.delta}</span></div>))}</div>)}
+              {!done&&(<div style={{marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontSize:11,color:"#a8afc4",fontWeight:600}}>项目进度</span><span style={{fontSize:11,color:tmpl.color,fontWeight:700}}>{p.progress}%</span></div><div style={{height:5,background:"#eaecf5",borderRadius:999}}><div style={{height:"100%",width:`${p.progress}%`,background:tmpl.color,borderRadius:999,transition:"width .4s"}}/></div></div>)}
               <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
                 <button onClick={e=>{e.stopPropagation();onEdit(p);}} style={{padding:"6px 12px",borderRadius:7,border:"1px solid #e4e7f0",background:"transparent",fontSize:12,fontWeight:600,color:"#4a4f6a",cursor:"pointer",fontFamily:"inherit"}}>✎ 编辑</button>
                 <button onClick={e=>{e.stopPropagation();onInterview(p);}} style={{padding:"6px 12px",borderRadius:7,border:`1px solid ${tmpl.color}44`,background:tmpl.light,fontSize:12,fontWeight:600,color:tmpl.color,cursor:"pointer",fontFamily:"inherit"}}>🎤 面试模拟</button>
@@ -423,10 +312,11 @@ function ProjectRow({ p, expanded, onToggle, onEdit, onDelete, onToggleStatus, o
 
 // ─── EDIT DRAWER ──────────────────────────────────────────────────────────────
 function EditDrawer({ project, onSave, onClose }) {
-  const blank = {id:null,industry:"product",status:"ongoing",title:"",description:"",startDate:"",endDate:"",jobTitle:"",company:"",extraFields:{},metrics:[],tags:[],progress:0,highlights:""};
-  const [form, setForm] = useState(project||blank);
-  const [tagInput, setTagInput] = useState("");
-  const tmpl = T[form.industry];
+  const blank={id:null,industry:"product",status:"ongoing",title:"",description:"",startDate:"",endDate:"",jobTitle:"",company:"",extraFields:{},metrics:[],tags:[],progress:0,highlights:""};
+  const [form,setForm]=useState(project||blank);
+  const [tagInput,setTagInput]=useState("");
+  const [saving,setSaving]=useState(false);
+  const tmpl=T[form.industry];
   const s=(k,v)=>setForm(p=>({...p,[k]:v}));
   const sx=(k,v)=>setForm(p=>({...p,extraFields:{...p.extraFields,[k]:v}}));
   const addM=()=>setForm(p=>({...p,metrics:[...p.metrics,{label:"",before:"",after:"",delta:""}]}));
@@ -436,128 +326,49 @@ function EditDrawer({ project, onSave, onClose }) {
   const delTag=t=>s("tags",form.tags.filter(x=>x!==t));
   const inp={padding:"8px 11px",borderRadius:8,border:"1px solid #e4e7f0",fontSize:13,fontFamily:"inherit",background:"#fafbff",color:"#1a1d2e",outline:"none",width:"100%",boxSizing:"border-box"};
   const lbl={display:"block",fontSize:10,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",color:"#a8afc4",marginBottom:4};
-
+  const handleSave=async()=>{setSaving(true);await onSave(form);setSaving(false);};
   return (
     <div style={{position:"fixed",inset:0,zIndex:600,display:"flex"}}>
       <div onClick={onClose} style={{flex:1,background:"rgba(15,18,40,.4)",backdropFilter:"blur(2px)"}}/>
       <div style={{width:520,background:"#fff",overflowY:"auto",boxShadow:"-8px 0 40px rgba(0,0,0,.12)"}}>
         <div style={{padding:"18px 22px 14px",borderBottom:"1px solid #eef0f6",position:"sticky",top:0,background:"#fff",zIndex:10,display:"flex",alignItems:"center",gap:10}}>
           <span style={{fontSize:18}}>{tmpl.icon}</span>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:800,fontSize:15,color:"#1a1d2e"}}>{form.id?"编辑项目":"新建项目"}</div>
-            <div style={{fontSize:11,color:"#a8afc4",marginTop:1}}>{tmpl.name} 模板</div>
-          </div>
+          <div style={{flex:1}}><div style={{fontWeight:800,fontSize:15,color:"#1a1d2e"}}>{form._dbid?"编辑项目":"新建项目"}</div><div style={{fontSize:11,color:"#a8afc4",marginTop:1}}>{tmpl.name} 模板</div></div>
           <button onClick={onClose} style={{background:"#f3f4fa",border:"none",borderRadius:7,width:28,height:28,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
         </div>
         <div style={{padding:"18px 22px",display:"flex",flexDirection:"column",gap:13}}>
-          <div>
-            <label style={lbl}>行业模板</label>
-            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-              {Object.values(T).map(t=>(
-                <button key={t.id} onClick={()=>s("industry",t.id)} style={{padding:"5px 11px",borderRadius:7,border:`2px solid ${form.industry===t.id?t.color:"#e4e7f0"}`,background:form.industry===t.id?t.light:"#fafbff",color:form.industry===t.id?t.color:"#8891a8",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .12s"}}>
-                  {t.icon} {t.name}
-                </button>
-              ))}
-            </div>
-          </div>
+          <div><label style={lbl}>行业模板</label><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{Object.values(T).map(t=>(<button key={t.id} onClick={()=>s("industry",t.id)} style={{padding:"5px 11px",borderRadius:7,border:`2px solid ${form.industry===t.id?t.color:"#e4e7f0"}`,background:form.industry===t.id?t.light:"#fafbff",color:form.industry===t.id?t.color:"#8891a8",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .12s"}}>{t.icon} {t.name}</button>))}</div></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            <div>
-              <label style={lbl}>状态</label>
-              <div style={{display:"flex",gap:6}}>
-                {[["ongoing","⏳ 进行中","#c2410c","#fff8e8"],["done","✓ 已完成","#059669","#d1fae5"]].map(([v,l,c,bg])=>(
-                  <button key={v} onClick={()=>s("status",v)} style={{flex:1,padding:"6px",borderRadius:8,border:`2px solid ${form.status===v?c:"#e4e7f0"}`,background:form.status===v?bg:"#fafbff",color:form.status===v?c:"#8891a8",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{l}</button>
-                ))}
-              </div>
-            </div>
-            {form.status==="ongoing"&&(
-              <div>
-                <label style={lbl}>进度 {form.progress}%</label>
-                <input type="range" min="0" max="100" value={form.progress} onChange={e=>s("progress",+e.target.value)} style={{width:"100%",accentColor:tmpl.color,marginTop:7}}/>
-              </div>
-            )}
+            <div><label style={lbl}>状态</label><div style={{display:"flex",gap:6}}>{[["ongoing","⏳ 进行中","#c2410c","#fff8e8"],["done","✓ 已完成","#059669","#d1fae5"]].map(([v,l,c,bg])=>(<button key={v} onClick={()=>s("status",v)} style={{flex:1,padding:"6px",borderRadius:8,border:`2px solid ${form.status===v?c:"#e4e7f0"}`,background:form.status===v?bg:"#fafbff",color:form.status===v?c:"#8891a8",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{l}</button>))}</div></div>
+            {form.status==="ongoing"&&(<div><label style={lbl}>进度 {form.progress}%</label><input type="range" min="0" max="100" value={form.progress} onChange={e=>s("progress",+e.target.value)} style={{width:"100%",accentColor:tmpl.color,marginTop:7}}/></div>)}
           </div>
-          <div>
-            <label style={lbl}>项目名称</label>
-            <input style={inp} value={form.title} onChange={e=>s("title",e.target.value)} placeholder={tmpl.ph.title}/>
-          </div>
+          <div><label style={lbl}>项目名称</label><input style={inp} value={form.title} onChange={e=>s("title",e.target.value)} placeholder={tmpl.ph.title}/></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-            <div>
-              <label style={lbl}>岗位名称</label>
-              <input style={inp} value={form.jobTitle||""} onChange={e=>s("jobTitle",e.target.value)} placeholder="例：高级产品经理"/>
-              <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:5}}>
-                {tmpl.jobs.slice(0,4).map(j=>(
-                  <button key={j} onClick={()=>s("jobTitle",j)} style={{padding:"2px 7px",borderRadius:999,border:`1px solid ${form.jobTitle===j?tmpl.color:"#e4e7f0"}`,background:form.jobTitle===j?tmpl.light:"transparent",color:form.jobTitle===j?tmpl.color:"#a8afc4",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .12s"}}>{j}</button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label style={lbl}>所在公司</label>
-              <input style={inp} value={form.company||""} onChange={e=>s("company",e.target.value)} placeholder="公司名称"/>
-            </div>
-            <div>
-              <label style={lbl}>开始时间</label>
-              <input style={inp} value={form.startDate||""} onChange={e=>s("startDate",e.target.value)} placeholder="2024-01"/>
-            </div>
-            <div>
-              <label style={lbl}>结束时间</label>
-              <input style={inp} value={form.endDate||""} onChange={e=>s("endDate",e.target.value)} placeholder="留空=至今"/>
-            </div>
+            <div><label style={lbl}>岗位名称</label><input style={inp} value={form.jobTitle||""} onChange={e=>s("jobTitle",e.target.value)} placeholder="例：高级产品经理"/><div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:5}}>{tmpl.jobs.slice(0,4).map(j=>(<button key={j} onClick={()=>s("jobTitle",j)} style={{padding:"2px 7px",borderRadius:999,border:`1px solid ${form.jobTitle===j?tmpl.color:"#e4e7f0"}`,background:form.jobTitle===j?tmpl.light:"transparent",color:form.jobTitle===j?tmpl.color:"#a8afc4",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .12s"}}>{j}</button>))}</div></div>
+            <div><label style={lbl}>所在公司</label><input style={inp} value={form.company||""} onChange={e=>s("company",e.target.value)} placeholder="公司名称"/></div>
+            <div><label style={lbl}>开始时间</label><input style={inp} value={form.startDate||""} onChange={e=>s("startDate",e.target.value)} placeholder="2024-01"/></div>
+            <div><label style={lbl}>结束时间</label><input style={inp} value={form.endDate||""} onChange={e=>s("endDate",e.target.value)} placeholder="留空=至今"/></div>
           </div>
-          <div>
-            <label style={lbl}>项目描述</label>
-            <textarea style={{...inp,resize:"vertical"}} rows={3} value={form.description} onChange={e=>s("description",e.target.value)} placeholder={tmpl.ph.desc}/>
-          </div>
+          <div><label style={lbl}>项目描述</label><textarea style={{...inp,resize:"vertical"}} rows={3} value={form.description} onChange={e=>s("description",e.target.value)} placeholder={tmpl.ph.desc}/></div>
           <div style={{background:tmpl.light,borderRadius:10,padding:"12px 14px",border:`1px solid ${tmpl.color}22`}}>
             <div style={{fontSize:10,fontWeight:700,color:tmpl.color,textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:10}}>{tmpl.icon} {tmpl.name}专属字段</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-              {tmpl.fields.map(f=>(
-                <div key={f}>
-                  <label style={{...lbl,color:tmpl.color}}>{f}</label>
-                  <input style={{...inp,background:"#fff",border:`1px solid ${tmpl.color}33`}} value={form.extraFields[f]||""} onChange={e=>sx(f,e.target.value)} placeholder={`填写${f}`}/>
-                </div>
-              ))}
-            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{tmpl.fields.map(f=>(<div key={f}><label style={{...lbl,color:tmpl.color}}>{f}</label><input style={{...inp,background:"#fff",border:`1px solid ${tmpl.color}33`}} value={form.extraFields[f]||""} onChange={e=>sx(f,e.target.value)} placeholder={`填写${f}`}/></div>))}</div>
           </div>
           <div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <label style={{...lbl,marginBottom:0}}>量化成果</label>
-              <button onClick={addM} style={{fontSize:11,color:tmpl.color,background:tmpl.light,border:`1px solid ${tmpl.color}33`,borderRadius:6,padding:"3px 9px",cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>+ 添加</button>
-            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><label style={{...lbl,marginBottom:0}}>量化成果</label><button onClick={addM} style={{fontSize:11,color:tmpl.color,background:tmpl.light,border:`1px solid ${tmpl.color}33`,borderRadius:6,padding:"3px 9px",cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>+ 添加</button></div>
             <div style={{fontSize:11,color:"#a8afc4",marginBottom:7}}>参考：{tmpl.metrics.join(" · ")}</div>
-            {form.metrics.length>0&&(
-              <div style={{display:"grid",gridTemplateColumns:"1.3fr .8fr .8fr 1fr 20px",gap:5,marginBottom:5}}>
-                {["指标","优化前","优化后","变化",""].map((h,i)=><span key={i} style={{fontSize:10,color:"#a8afc4",fontWeight:600}}>{h}</span>)}
-              </div>
-            )}
-            {form.metrics.map((m,i)=>(
-              <div key={i} style={{display:"grid",gridTemplateColumns:"1.3fr .8fr .8fr 1fr 20px",gap:5,marginBottom:5,alignItems:"center"}}>
-                {[["label","指标名"],["before","优化前"],["after","优化后"],["delta","变化"]].map(([k,ph])=>(
-                  <input key={k} style={{...inp,padding:"6px 8px",fontSize:12}} value={m[k]} onChange={e=>updM(i,{[k]:e.target.value})} placeholder={ph}/>
-                ))}
-                <button onClick={()=>delM(i)} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:16,padding:0}}>×</button>
-              </div>
-            ))}
+            {form.metrics.length>0&&(<div style={{display:"grid",gridTemplateColumns:"1.3fr .8fr .8fr 1fr 20px",gap:5,marginBottom:5}}>{["指标","优化前","优化后","变化",""].map((h,i)=><span key={i} style={{fontSize:10,color:"#a8afc4",fontWeight:600}}>{h}</span>)}</div>)}
+            {form.metrics.map((m,i)=>(<div key={i} style={{display:"grid",gridTemplateColumns:"1.3fr .8fr .8fr 1fr 20px",gap:5,marginBottom:5,alignItems:"center"}}>{[["label","指标名"],["before","优化前"],["after","优化后"],["delta","变化"]].map(([k,ph])=>(<input key={k} style={{...inp,padding:"6px 8px",fontSize:12}} value={m[k]} onChange={e=>updM(i,{[k]:e.target.value})} placeholder={ph}/>))}<button onClick={()=>delM(i)} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:16,padding:0}}>×</button></div>))}
           </div>
           <div>
             <label style={lbl}>分类标签</label>
-            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:7}}>
-              {tmpl.tags.map(t=>(
-                <TagPill key={t} label={t} color={tmpl.color} bg={tmpl.light} active={form.tags.includes(t)} onClick={()=>form.tags.includes(t)?delTag(t):addTag(t)} small/>
-              ))}
-            </div>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:7}}>{tmpl.tags.map(t=>(<TagPill key={t} label={t} color={tmpl.color} bg={tmpl.light} active={form.tags.includes(t)} onClick={()=>form.tags.includes(t)?delTag(t):addTag(t)} small/>))}</div>
             <input style={inp} value={tagInput} onChange={e=>setTagInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addTag(tagInput)} placeholder="自定义标签，Enter 添加"/>
-            {form.tags.filter(t=>!tmpl.tags.includes(t)).length>0&&(
-              <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:6}}>
-                {form.tags.filter(t=>!tmpl.tags.includes(t)).map(t=><TagPill key={t} label={t} color={tmpl.color} bg={tmpl.light} onRemove={()=>delTag(t)} small/>)}
-              </div>
-            )}
+            {form.tags.filter(t=>!tmpl.tags.includes(t)).length>0&&(<div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:6}}>{form.tags.filter(t=>!tmpl.tags.includes(t)).map(t=><TagPill key={t} label={t} color={tmpl.color} bg={tmpl.light} onRemove={()=>delTag(t)} small/>)}</div>)}
           </div>
-          <div>
-            <label style={lbl}>亮点备注</label>
-            <textarea style={{...inp,resize:"vertical"}} rows={2} value={form.highlights} onChange={e=>s("highlights",e.target.value)} placeholder="项目亮点、特殊突破或补充说明"/>
-          </div>
-          <button onClick={()=>onSave(form)} style={{padding:"11px",background:tmpl.color,color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:800,cursor:"pointer",fontFamily:"inherit",marginTop:2}}>
-            💾 保存项目
+          <div><label style={lbl}>亮点备注</label><textarea style={{...inp,resize:"vertical"}} rows={2} value={form.highlights} onChange={e=>s("highlights",e.target.value)} placeholder="项目亮点、特殊突破或补充说明"/></div>
+          <button onClick={handleSave} disabled={saving} style={{padding:"11px",background:saving?"#a8d8da":tmpl.color,color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:800,cursor:saving?"not-allowed":"pointer",fontFamily:"inherit",marginTop:2,transition:"background .2s"}}>
+            {saving?"保存中…":"💾 保存项目"}
           </button>
         </div>
       </div>
@@ -565,81 +376,168 @@ function EditDrawer({ project, onSave, onClose }) {
   );
 }
 
-// ─── MAIN ─────────────────────────────────────────────────────────────────────
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
 function App() {
-  const [projects, setProjects] = useState(loadProjects);
-  const [editing, setEditing] = useState(null);
+  const [user, setUser]       = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [dbLoading, setDbLoading] = useState(false);
+  const [editing, setEditing]   = useState(null);
   const [expanded, setExpanded] = useState(null);
   const [interviewProject, setInterviewProject] = useState(null);
-  const [filterInd, setFilterInd] = useState("all");
-  const [filterJob, setFilterJob] = useState("all");
+  const [filterInd, setFilterInd]       = useState("all");
+  const [filterJob, setFilterJob]       = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [filterTag, setFilterTag] = useState("");
-  const [search, setSearch] = useState("");
+  const [filterTag, setFilterTag]       = useState("");
+  const [search, setSearch]             = useState("");
 
-  useEffect(() => { saveProjects(projects); }, [projects]);
+  // Auth listener
+  useEffect(() => {
+    sb.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthReady(true);
+    });
+    const { data: { subscription } } = sb.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+      setAuthReady(true);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const save = form => { if(form.id) setProjects(p=>p.map(x=>x.id===form.id?form:x)); else setProjects(p=>[...p,{...form,id:Date.now()}]); setEditing(null); };
-  const del  = id  => { setProjects(p=>p.filter(x=>x.id!==id)); if(expanded===id)setExpanded(null); };
-  const toggleStatus = id => setProjects(p=>p.map(x=>x.id===id?{...x,status:x.status==="done"?"ongoing":"done",progress:x.status==="done"?80:100}:x));
+  // Load projects when user logs in
+  useEffect(() => {
+    if (!user) { setProjects([]); return; }
+    setDbLoading(true);
+    sb.from("projects").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) { console.error(error); setDbLoading(false); return; }
+        if (data.length === 0) {
+          // First login — seed with sample data
+          const rows = SAMPLE.map(p => ({ user_id: user.id, data: { ...p, id: Date.now() + Math.random() } }));
+          sb.from("projects").insert(rows).select().then(({ data: newRows }) => {
+            if (newRows) setProjects(newRows.map(r => ({ ...r.data, _dbid: r.id })));
+            setDbLoading(false);
+          });
+        } else {
+          setProjects(data.map(r => ({ ...r.data, _dbid: r.id })));
+          setDbLoading(false);
+        }
+      });
+  }, [user]);
 
-  const availableJobs = useMemo(()=>[...new Set((filterInd==="all"?projects:projects.filter(p=>p.industry===filterInd)).map(p=>p.jobTitle).filter(Boolean))],[filterInd,projects]);
+  // Save / update a project
+  const save = async (form) => {
+    if (form._dbid) {
+      const { error } = await sb.from("projects")
+        .update({ data: form, updated_at: new Date().toISOString() })
+        .eq("id", form._dbid);
+      if (!error) setProjects(p => p.map(x => x._dbid === form._dbid ? form : x));
+    } else {
+      const newForm = { ...form, id: Date.now() };
+      const { data, error } = await sb.from("projects")
+        .insert({ user_id: user.id, data: newForm })
+        .select().single();
+      if (!error && data) setProjects(p => [{ ...data.data, _dbid: data.id }, ...p]);
+    }
+    setEditing(null);
+  };
 
-  const filtered = useMemo(()=>projects.filter(p=>{
-    if(filterInd!=="all"&&p.industry!==filterInd) return false;
-    if(filterJob!=="all"&&p.jobTitle!==filterJob) return false;
-    if(filterStatus!=="all"&&p.status!==filterStatus) return false;
-    if(filterTag&&!p.tags.includes(filterTag)) return false;
-    if(search&&!p.title.includes(search)&&!p.description.includes(search)) return false;
+  const del = async (id) => {
+    const p = projects.find(x => x.id === id);
+    if (p?._dbid) await sb.from("projects").delete().eq("id", p._dbid);
+    setProjects(prev => prev.filter(x => x.id !== id));
+    if (expanded === id) setExpanded(null);
+  };
+
+  const toggleStatus = async (id) => {
+    const p = projects.find(x => x.id === id);
+    if (!p) return;
+    const updated = { ...p, status: p.status === "done" ? "ongoing" : "done", progress: p.status === "done" ? 80 : 100 };
+    if (p._dbid) await sb.from("projects").update({ data: updated, updated_at: new Date().toISOString() }).eq("id", p._dbid);
+    setProjects(prev => prev.map(x => x.id === id ? updated : x));
+  };
+
+  const signOut = () => sb.auth.signOut();
+
+  const availableJobs = useMemo(() =>
+    [...new Set((filterInd === "all" ? projects : projects.filter(p => p.industry === filterInd)).map(p => p.jobTitle).filter(Boolean))],
+    [filterInd, projects]
+  );
+
+  const filtered = useMemo(() => projects.filter(p => {
+    if (filterInd !== "all" && p.industry !== filterInd) return false;
+    if (filterJob !== "all" && p.jobTitle !== filterJob) return false;
+    if (filterStatus !== "all" && p.status !== filterStatus) return false;
+    if (filterTag && !p.tags.includes(filterTag)) return false;
+    if (search && !p.title.includes(search) && !p.description.includes(search)) return false;
     return true;
-  }),[projects,filterInd,filterJob,filterStatus,filterTag,search]);
+  }), [projects, filterInd, filterJob, filterStatus, filterTag, search]);
 
-  const ongoing=filtered.filter(p=>p.status==="ongoing");
-  const done=filtered.filter(p=>p.status==="done");
-  const tagBase=filterInd==="all"?projects:projects.filter(p=>p.industry===filterInd);
-  const tagCounts={};tagBase.forEach(p=>p.tags.forEach(t=>{tagCounts[t]=(tagCounts[t]||0)+1;}));
-  const allTags=Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).map(([t])=>t);
-  const totalMetrics=projects.reduce((a,p)=>a+p.metrics.length,0);
+  const ongoing = filtered.filter(p => p.status === "ongoing");
+  const done    = filtered.filter(p => p.status === "done");
+  const tagBase = filterInd === "all" ? projects : projects.filter(p => p.industry === filterInd);
+  const tagCounts = {}; tagBase.forEach(p => p.tags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
+  const allTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(([t]) => t);
+  const totalMetrics = projects.reduce((a, p) => a + p.metrics.length, 0);
+
+  // ── Render states ──
+  if (!authReady) return <Spinner text="初始化中…"/>;
+  if (!user)      return <LoginPage/>;
+  if (dbLoading)  return <Spinner text="正在加载你的项目…"/>;
+
+  const avatar = user.user_metadata?.avatar_url;
+  const displayName = user.user_metadata?.full_name || user.user_metadata?.user_name || user.email?.split("@")[0] || "我";
 
   return (
     <div style={{height:"100vh",background:"#f2f3f9",display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      {/* NAV */}
+
+      {/* ── NAV ── */}
       <div style={{background:"#fff",borderBottom:"1px solid #e8eaf4",padding:"0 16px",flexShrink:0}}>
         <div style={{height:52,display:"flex",alignItems:"center",gap:10}}>
-          <div style={{display:"flex",alignItems:"center",gap:7,marginRight:6,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,marginRight:4,flexShrink:0}}>
             <div style={{width:28,height:28,borderRadius:7,background:"linear-gradient(135deg,#0d7377,#14a085)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>📋</div>
             <span style={{fontWeight:900,fontSize:15,color:"#1a1d2e",letterSpacing:"-0.3px"}}>成就库</span>
           </div>
-          <div style={{position:"relative",width:180,flexShrink:0}}>
+          <div style={{position:"relative",width:170,flexShrink:0}}>
             <span style={{position:"absolute",left:8,top:"50%",transform:"translateY(-50%)",fontSize:12,color:"#bbb"}}>🔍</span>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜索项目..."
-              style={{width:"100%",padding:"6px 10px 6px 26px",borderRadius:8,border:"none",fontSize:12,fontFamily:"inherit",background:"#f2f3f9",color:"#1a1d2e",outline:"none",boxSizing:"border-box"}}/>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜索项目…" style={{width:"100%",padding:"6px 10px 6px 26px",borderRadius:8,border:"none",fontSize:12,fontFamily:"inherit",background:"#f2f3f9",color:"#1a1d2e",outline:"none",boxSizing:"border-box"}}/>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
             <span style={{fontSize:11,color:"#a8afc4",fontWeight:600}}>行业</span>
-            <select value={filterInd} onChange={e=>{setFilterInd(e.target.value);setFilterJob("all");}} style={{padding:"5px 10px",borderRadius:8,border:"1px solid #e4e7f0",fontSize:12,fontFamily:"inherit",background:"#fff",color:"#1a1d2e",outline:"none",cursor:"pointer"}}>
+            <select value={filterInd} onChange={e=>{setFilterInd(e.target.value);setFilterJob("all");}} style={{padding:"5px 8px",borderRadius:8,border:"1px solid #e4e7f0",fontSize:12,fontFamily:"inherit",background:"#fff",color:"#1a1d2e",outline:"none",cursor:"pointer"}}>
               <option value="all">全部</option>
               {Object.values(T).map(t=><option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}
             </select>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
             <span style={{fontSize:11,color:"#a8afc4",fontWeight:600}}>岗位</span>
-            <select value={filterJob} onChange={e=>setFilterJob(e.target.value)} style={{padding:"5px 10px",borderRadius:8,border:"1px solid #e4e7f0",fontSize:12,fontFamily:"inherit",background:"#fff",color:"#1a1d2e",outline:"none",cursor:"pointer",maxWidth:150}}>
+            <select value={filterJob} onChange={e=>setFilterJob(e.target.value)} style={{padding:"5px 8px",borderRadius:8,border:"1px solid #e4e7f0",fontSize:12,fontFamily:"inherit",background:"#fff",color:"#1a1d2e",outline:"none",cursor:"pointer",maxWidth:130}}>
               <option value="all">全部</option>
               {availableJobs.map(j=><option key={j} value={j}>{j}</option>)}
             </select>
           </div>
           <div style={{display:"flex",background:"#f2f3f9",borderRadius:8,overflow:"hidden",flexShrink:0}}>
             {[["all","全部"],["ongoing","进行中"],["done","已完成"]].map(([v,l])=>(
-              <button key={v} onClick={()=>setFilterStatus(v)} style={{padding:"5px 12px",border:"none",background:filterStatus===v?"#1a1d2e":"transparent",color:filterStatus===v?"#fff":"#8891a8",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .12s"}}>{l}</button>
+              <button key={v} onClick={()=>setFilterStatus(v)} style={{padding:"5px 10px",border:"none",background:filterStatus===v?"#1a1d2e":"transparent",color:filterStatus===v?"#fff":"#8891a8",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .12s"}}>{l}</button>
             ))}
           </div>
           <button onClick={()=>setEditing({})} style={{marginLeft:"auto",padding:"7px 14px",background:"#0d7377",color:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>+ 新建</button>
+
+          {/* User avatar + logout */}
+          <div style={{display:"flex",alignItems:"center",gap:7,flexShrink:0,paddingLeft:4,borderLeft:"1px solid #f0f2f8",marginLeft:4}}>
+            {avatar
+              ? <img src={avatar} style={{width:26,height:26,borderRadius:"50%",objectFit:"cover",flexShrink:0}} alt=""/>
+              : <div style={{width:26,height:26,borderRadius:"50%",background:"linear-gradient(135deg,#0d7377,#14a085)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#fff",fontWeight:800,flexShrink:0}}>{displayName.charAt(0).toUpperCase()}</div>
+            }
+            <span style={{fontSize:12,color:"#4a4f6a",fontWeight:600,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{displayName}</span>
+            <button onClick={signOut} style={{fontSize:11,color:"#a8afc4",background:"none",border:"1px solid #e4e7f0",borderRadius:6,padding:"3px 8px",cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>退出</button>
+          </div>
         </div>
       </div>
 
-      {/* BODY */}
+      {/* ── BODY ── */}
       <div style={{display:"flex",flex:1,overflow:"hidden"}}>
+
         {/* SIDEBAR */}
         <div style={{width:172,flexShrink:0,background:"#fff",borderRight:"1px solid #e8eaf4",overflowY:"auto",display:"flex",flexDirection:"column"}}>
           <div style={{padding:"14px 14px 10px"}}>
@@ -660,12 +558,7 @@ function App() {
               const active=filterTag===t;
               const proj=projects.find(p=>p.tags.includes(t)&&(filterInd==="all"||p.industry===filterInd));
               const c=proj?T[proj.industry].color:"#4f5882";
-              return (
-                <button key={t} onClick={()=>setFilterTag(active?"":t)} style={{width:"100%",textAlign:"left",padding:"5px 9px",borderRadius:7,border:"none",background:active?`${c}18`:"transparent",color:active?c:"#6b7280",fontSize:12,fontWeight:active?700:400,cursor:"pointer",fontFamily:"inherit",marginBottom:1,display:"flex",justifyContent:"space-between",alignItems:"center",transition:"all .12s"}}>
-                  <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginRight:6}}>{t}</span>
-                  <span style={{fontSize:10,color:active?c:"#c8cede",fontWeight:700,flexShrink:0}}>{cnt}</span>
-                </button>
-              );
+              return (<button key={t} onClick={()=>setFilterTag(active?"":t)} style={{width:"100%",textAlign:"left",padding:"5px 9px",borderRadius:7,border:"none",background:active?`${c}18`:"transparent",color:active?c:"#6b7280",fontSize:12,fontWeight:active?700:400,cursor:"pointer",fontFamily:"inherit",marginBottom:1,display:"flex",justifyContent:"space-between",alignItems:"center",transition:"all .12s"}}><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginRight:6}}>{t}</span><span style={{fontSize:10,color:active?c:"#c8cede",fontWeight:700,flexShrink:0}}>{cnt}</span></button>);
             })}
           </div>
         </div>
